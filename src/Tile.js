@@ -21,6 +21,7 @@ function traverse(children) {
   return children.map( (c,i) => {
 	if (c instanceof Mesh) {
 	  const Tag = c.userData.scatter ? scatterMap[c.userData.scatter] : "mesh";
+
 	  return <Tag key={i}
 			   material={c.material}
 			   geometry={c.geometry}

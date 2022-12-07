@@ -8,13 +8,15 @@ import {Bushes}  from './Bushes';
 import {Flowers} from './Flowers';
 import {Trees} from './Trees';
 import {Grasses} from './Grasses';
+import { Houses } from './Houses';
 
 const scatterMap = {
   flowers: Flowers,
   trees: Trees,
   rocks: Rocks,
   bushes: Bushes,
-  grasses: Grasses
+  grasses: Grasses,
+  houses: Houses,
 }
 
 function traverse(children) {
@@ -55,3 +57,4 @@ useGLTF.preload('assets/empty.glb');
 useGLTF.preload('assets/flower.glb');
 useGLTF.preload('assets/tree.glb');
 useGLTF.preload('assets/grass.glb');
+useGLTF.preload('assets/house.glb');

@@ -49,6 +49,8 @@ const Tile = props => {
   const [cx,cy] = tri.center(...props.pos);
 
   const up = tri.points_up(...props.pos);
+  const cellIdx = tri.pick_tri(cx, cy);
+//   console.log(cellIdx.toString())
 
   const scale = 1;
 
@@ -57,7 +59,7 @@ const Tile = props => {
   // then rotation for up or down triangles
   // finally position
 //   let mesh = <TileModel t={t} scale={scale} position={[0,0,scale*2*th]}  />
-  let mesh = <object3D rotation={[0,up ? 0 : 3*d60,0]} >
+  let mesh = <object3D rotation={[0,up ? 0 : 3*d60,0]} key={cellIdx}>
 		  <object3D rotation={[0,r*2*d60,0]}>
 			<TileModel t={t} scale={scale} position={[0,0,scale*2*th]}  />
 		  </object3D>
@@ -72,8 +74,7 @@ const Tile = props => {
 // 	  </group>
 
 //     </>
-// mesh.name = 'bob'
-// console.log(mesh.name)
+// mesh.userData.id = cellIdx
 	// mesh.callback = function() { console.log( mesh.name ); }
   return (
     <>
@@ -94,6 +95,7 @@ threeInstance.scene.traverse(function(obj){
 		objects.push(obj)
 	}
 });
+// threeInstance.scene.add( new THREE.AxesHelper( 5 ) )
 
   const [ options, setOptions ] = useState({});
 
@@ -101,17 +103,24 @@ threeInstance.scene.traverse(function(obj){
 
   const [ dirty, setDirty ] = useState( [] );
   const [ iteration, setIteration ] = useState(0);
+  const [ cellIdx, setCellIdx ] = useState('');
+  const [ clicked, setClicked ] = useState(false);
 
   const HandleClick = e => {
 	// const instance = threeInstance;
 	// console.log(gridRef)
 	const intersects = threeInstance.raycaster.intersectObjects(objects);
 	if (intersects.length > 0) {
-		console.log(intersects)
+		const ix = intersects[0].point
+		console.log(ix)
+		const cellx = tri.pick_tri(ix.x, ix.z).toString()
+		console.log(cellx);
+		setCellIdx(cellx);
+		setClicked(true);
 		setIteration(iteration+1);
 	  }
-};
-window.addEventListener('click', HandleClick);
+	};
+	window.addEventListener('click', HandleClick);
 
   if (props.cells !== cells) {
 	// reset
@@ -187,13 +196,23 @@ window.addEventListener('click', HandleClick);
 
 	// pick cell with least options ("least entropy")
 
-	const [ min_cell, len ] = Object.keys(options).map( c => [ c, options[c].length ] )
+	var [ min_cell, len ] = Object.keys(options).map( c => [ c, options[c].length ] )
 	  .reduce( (min, e) => options[e[0]].length>1 && e[1] < min[1] ? e : min, [undefined, 1000000]);
 
 	if (min_cell === undefined) {
 	  log('all done!');
 	  return;
 	}
+
+	if (clicked) {
+		setClicked(false);
+		if (cellIdx in options && options[cellIdx].length > 1) {
+			min_cell = cellIdx;
+		} else {
+			return;
+		}
+	}
+	console.log(min_cell)
 
 	// pick a random option
 	const val = options[min_cell][Math.floor(Math.random()*options[min_cell].length)];

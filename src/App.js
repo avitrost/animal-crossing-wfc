@@ -1,5 +1,7 @@
 import React, { useEffect, useState, Suspense } from 'react'
 
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
+
 import { Canvas } from '@react-three/fiber'
 import { Sky, Environment, OrbitControls } from "@react-three/drei";
 
@@ -19,7 +21,7 @@ const th = Math.sqrt(3)/6;
 
 const verbose = false;
 
-var domEvents = new DomEvent(camera, renderer.domElement)
+// var domEvents = new DomEvent(camera, renderer.domElement)
 
 function log(msg) {
   if (verbose) console.log(msg);
@@ -188,6 +190,38 @@ function App() {
   const [ iteration, setIteration ] = useState(0);
   const [ autoRotate, setAutoRotate ] = useState(false);
 
+	// CONTROLS START HERE
+	const gui = new GUI()
+	
+	// possible controls to add
+	// number of clouds (just a slider)
+	// size of clouds (also a slider)
+	// time of day (how is the scene lit?)
+	// grid size (blob radius)
+	// camera exposure
+	// 
+
+	const parameters = {
+		myBoolean: true,
+		myNumber: 1,
+		radius: 6,
+		cloudSize: 6,
+		cloudNum: 5
+	}
+		
+	gui.add(parameters, 'myBoolean');
+	gui.add(parameters, 'myNumber', 0, 1);
+
+	const blob = gui.addFolder('Blob');
+	blob.add(parameters, 'radius', 0, 10);
+
+	const clouds = gui.addFolder('Clouds');
+	clouds.add(parameters, 'cloudSize', 0, 10);
+	clouds.add(parameters, 'cloudNum', 0, 10);
+
+	gui.close()
+	// CONTROLS END HERE
+	
   const [ cells, setCells ] = useState( () => {
 
 	let cells = {};
@@ -231,6 +265,8 @@ function App() {
 	};
   }, [iteration, autoRotate, cells]);
 
+//   const camera = {{fov: 45, position: [5, 5, 5]}}
+//   const camera = new THREE
   return <Canvas camera={{ fov: 45, position: [5, 5, 5] }}>
 		   <Suspense fallback={null}>
 			 <OrbitControls autoRotate={autoRotate}/>

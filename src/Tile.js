@@ -8,19 +8,22 @@ import {Bushes}  from './Bushes';
 import {Flowers} from './Flowers';
 import {Trees} from './Trees';
 import {Grasses} from './Grasses';
+import { Houses } from './Houses';
 
 const scatterMap = {
   flowers: Flowers,
   trees: Trees,
   rocks: Rocks,
   bushes: Bushes,
-  grasses: Grasses
+  grasses: Grasses,
+  houses: Houses,
 }
 
 function traverse(children) {
   return children.map( (c,i) => {
 	if (c instanceof Mesh) {
 	  const Tag = c.userData.scatter ? scatterMap[c.userData.scatter] : "mesh";
+
 	  return <Tag key={i}
 			   material={c.material}
 			   geometry={c.geometry}
@@ -41,6 +44,8 @@ export default function Tile(props) {
   const { nodes } = useGLTF(`assets/${fn(props.t)}.glb`)
 
   const meshes = useMemo( () => traverse(nodes.Scene.children), [ nodes ] );
+//   meshes.callback = function() { console.log( meshes ); }
+//   meshes.callback()
 
   return (
 	<group {...props} dispose={null}>
@@ -54,3 +59,4 @@ useGLTF.preload('assets/empty.glb');
 useGLTF.preload('assets/flower.glb');
 useGLTF.preload('assets/tree.glb');
 useGLTF.preload('assets/grass.glb');
+useGLTF.preload('assets/house.glb');

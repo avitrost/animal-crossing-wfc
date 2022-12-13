@@ -351,7 +351,7 @@ function App({ props }) {
 			 <ambientLight args={[2]}/>
 			 { /* <axesHelper /> */ }
 			 <Environment preset="sunset" />
-			 <fog color="white" far={30} near={0.01} attach="fog" />
+			 {/* <fog color="white" far={30} near={0.01} attach="fog" /> */}
 			 <Sky distance={450000} sunPosition={[1, .02, 0]} inclination={.1} azimuth={0.25}  />
 			 <Clouds position={[0,2.5,0]}/>
 			 <Grid position={[0,0,0]} rules={tv3} iteration={iteration} cells={cells}/>

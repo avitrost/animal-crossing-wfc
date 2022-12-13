@@ -16,7 +16,7 @@ export const Trees = (props) => {
 		   material={materials}
 		   geometry={props.geometry}
 		   childGeometry={geometries}
-		   density={6}>
+		   density={5}>
 		 </Scatter>
 
 };

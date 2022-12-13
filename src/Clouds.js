@@ -24,7 +24,7 @@ export default function Clouds(props) {
   const clouds = useMemo( ()=> [ ...Array(5).keys() ].map( _ => ({ rotation: [ 0, Math.random()*0.3, 0], position: [ Math.random()*5-2.5, 0, Math.random()*5-2.5 ] })), []);
 
   return <Instances range={100} limit={100} {...props}>
-		   <icosahedronGeometry args={[0.2]}/>
+		   <icosahedronGeometry args={[0.2, 1]}/>
 		   <meshStandardMaterial flatShading>
 			 <GradientTexture
 			   stops={[0, 1]} // As many stops as you want

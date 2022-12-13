@@ -29,7 +29,7 @@ class Tri {
   }
 
   static pick_tri(x, y) {
-    y = y - sqrt3 / 4;
+    y = y - sqrt3 / 4; // grid offsets
     x = x - 0.5;
     const len = 1;
     return [

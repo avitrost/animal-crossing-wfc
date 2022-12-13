@@ -27,6 +27,18 @@ class Tri {
       [a    , b    , c + 1],
     ];
   }
+
+  static pick_tri(x, y) {
+    y = y - sqrt3 / 4; // grid offsets
+    x = x - 0.5;
+    const len = 1;
+    return [
+      Math.ceil(( 1 * x - sqrt3 / 3 * y) / len),
+      Math.floor((    sqrt3 * 2 / 3 * y) / len) + 1,
+      Math.ceil((-1 * x - sqrt3 / 3 * y) / len)
+    ]
+  }
+
 }
 
 export default Tri;

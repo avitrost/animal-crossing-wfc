@@ -1,22 +1,29 @@
-import React, { useEffect, useState, Suspense } from 'react'
+import React, { useEffect, useState, Suspense, useRef } from 'react'
+
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 
 import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { Sky, Environment, OrbitControls } from "@react-three/drei";
 
 import './App.css';
 
 import tri from './tri.js';
-import tv2 from './tv2.js';
 import tv3 from './tv3.js';
 
 import TileModel from './Tile';
 
 import Clouds from './Clouds';
 
+import * as DomEvent from './threex.domevents/threex.domevents';
+import * as THREE from 'three';
+	
 const d60 = 2*Math.PI/6;
 const th = Math.sqrt(3)/6;
 
 const verbose = false;
+
+// var domEvents = new DomEvent(camera, renderer.domElement)
 
 function log(msg) {
   if (verbose) console.log(msg);
@@ -31,6 +38,9 @@ function intersection(a,b) {
 
 const Tile = props => {
 
+//   const a = useThree()
+//   const cam={ fov: 45, position: [5, 5, 5] }
+//   var domEvents = new DomEvent(a.camera, a.renderer.domElement)
   let r, t;
 
   if (props.t === undefined) {
@@ -44,6 +54,8 @@ const Tile = props => {
   const [cx,cy] = tri.center(...props.pos);
 
   const up = tri.points_up(...props.pos);
+  const cellIdx = tri.pick_tri(cx, cy);
+//   console.log(cellIdx.toString())
 
   const scale = 1;
 
@@ -51,14 +63,28 @@ const Tile = props => {
   // then rotation to give us right orientation of triangle (3 options), r=0,1,2
   // then rotation for up or down triangles
   // finally position
-  return (
-    <>
-	  <group position={[scale*cx,0,scale*cy]}>
-		<object3D rotation={[0,up ? 0 : 3*d60,0]} >
+//   let mesh = <TileModel t={t} scale={scale} position={[0,0,scale*2*th]}  />
+  let mesh = <object3D rotation={[0,up ? 0 : 3*d60,0]} key={cellIdx}>
 		  <object3D rotation={[0,r*2*d60,0]}>
 			<TileModel t={t} scale={scale} position={[0,0,scale*2*th]}  />
 		  </object3D>
 		</object3D>
+//   let mesh = <>
+// 	  <group position={[scale*cx,0,scale*cy]}>
+// 		<object3D rotation={[0,up ? 0 : 3*d60,0]} >
+// 		  <object3D rotation={[0,r*2*d60,0]}>
+// 			<TileModel t={t} scale={scale} position={[0,0,scale*2*th]}  />
+// 		  </object3D>
+// 		</object3D>
+// 	  </group>
+
+//     </>
+// mesh.userData.id = cellIdx
+	// mesh.callback = function() { console.log( mesh.name ); }
+  return (
+    <>
+	  <group position={[scale*cx,0,scale*cy]}>
+		{mesh}
 	  </group>
 
     </>
@@ -66,6 +92,15 @@ const Tile = props => {
 };
 
 const Grid = props => {
+	
+const threeInstance = useThree()
+var objects = [];
+threeInstance.scene.traverse(function(obj){
+	if(obj.type === 'Object3D'){
+		objects.push(obj)
+	}
+});
+// threeInstance.scene.add( new THREE.AxesHelper( 5 ) )
 
   const [ options, setOptions ] = useState({});
 
@@ -73,6 +108,24 @@ const Grid = props => {
 
   const [ dirty, setDirty ] = useState( [] );
   const [ iteration, setIteration ] = useState(0);
+  const [ cellIdx, setCellIdx ] = useState('');
+  const [ clicked, setClicked ] = useState(false);
+
+  const HandleClick = e => {
+	// const instance = threeInstance;
+	// console.log(gridRef)
+	const intersects = threeInstance.raycaster.intersectObjects(objects);
+	if (intersects.length > 0) {
+		const ix = intersects[0].point
+		console.log(ix)
+		const cellx = tri.pick_tri(ix.x, ix.z).toString()
+		console.log(cellx);
+		setCellIdx(cellx);
+		setClicked(true);
+		setIteration(iteration+1);
+	  }
+	};
+	window.addEventListener('click', HandleClick);
 
   if (props.cells !== cells) {
 	// reset
@@ -148,13 +201,23 @@ const Grid = props => {
 
 	// pick cell with least options ("least entropy")
 
-	const [ min_cell, len ] = Object.keys(options).map( c => [ c, options[c].length ] )
+	var [ min_cell, len ] = Object.keys(options).map( c => [ c, options[c].length ] )
 	  .reduce( (min, e) => options[e[0]].length>1 && e[1] < min[1] ? e : min, [undefined, 1000000]);
 
 	if (min_cell === undefined) {
 	  log('all done!');
 	  return;
 	}
+
+	if (clicked) {
+		setClicked(false);
+		if (cellIdx in options && options[cellIdx].length > 1) {
+			min_cell = cellIdx;
+		} else {
+			return;
+		}
+	}
+	console.log(min_cell)
 
 	// pick a random option
 	const val = options[min_cell][Math.floor(Math.random()*options[min_cell].length)];
@@ -179,10 +242,48 @@ const Grid = props => {
   )
 };
 
-function App() {
+function App({ props }) {
 
   const [ iteration, setIteration ] = useState(0);
   const [ autoRotate, setAutoRotate ] = useState(false);
+
+	// CONTROLS START HERE
+	const gui = new GUI()
+	
+	// possible controls to add
+	// number of clouds (just a slider)
+	// size of clouds (also a slider)
+	// time of day (how is the scene lit?)
+	// grid size (blob radius)
+	// camera exposure
+	// 
+
+	const parameters = {
+		myBoolean: true,
+		myNumber: 1,
+		radius: 6,
+		cloudSize: 6,
+		cloudNum: 5
+	}
+		
+	gui.add(parameters, 'myBoolean');
+	gui.add(parameters, 'myNumber', 0, 1);
+
+	const blob = gui.addFolder('Blob');
+	blob.add(parameters, 'radius', 0, 10);
+
+	const clouds = gui.addFolder('Clouds');
+	clouds.add(parameters, 'cloudSize', 0, 10);
+	clouds.add(parameters, 'cloudNum', 0, 10);
+
+	gui.close()
+	// CONTROLS END HERE
+	
+//   const { mycamera, myscene, myrenderer } = useThree()
+//   const cam={ fov: 45, position: [5, 5, 5] }
+//   const renderer = new THREE.WebGLRenderer();
+
+//   var domEvents1 = new DomEvent(cam, renderer.domElement)
 
   const [ cells, setCells ] = useState( () => {
 
@@ -207,34 +308,53 @@ function App() {
 	return cells;
   });
 
+// //   const threeInstance = useThree();
+// const addObject = () => {
+//     // Get the current three.js instance.
+//     const instance = useThree();
+// 	console.log(instance);
+//   };
+// const instance = useRef();
+// const gridRef = React.useRef();
+
   useEffect(() => {
     const handleWindowKeydown = e => {
+	  // if space is pressed
 	  if (e.keyCode === 32) setIteration(iteration+1);
+	  // if r is pressed (resets the entire board)
 	  if (e.keyCode === 82) setCells({...cells});
+	  // if a is pressed, keeps on rotating the board
 	  if (e.keyCode === 65) setAutoRotate(!autoRotate);
 	};
-	const handleClick = e => { setIteration(iteration+1); };
-	window.addEventListener('click', handleClick);
+	const HandleClick = e => {
+		// const instance = threeInstance;
+		// console.log(gridRef)
+		console.log(props.threeInstance)
+		setIteration(iteration+1);
+	};
+	// window.addEventListener('click', HandleClick);
 
     window.addEventListener('keydown', handleWindowKeydown);
 
     return () => {
 	  window.removeEventListener('keydown', handleWindowKeydown);
-	  window.removeEventListener('click', handleClick);
+	  window.removeEventListener('click', HandleClick);
 	};
   }, [iteration, autoRotate, cells]);
 
+//   const camera = {{fov: 45, position: [5, 5, 5]}}
+//   const camera = new THREE
   return <Canvas camera={{ fov: 45, position: [5, 5, 5] }}>
 		   <Suspense fallback={null}>
 			 <OrbitControls autoRotate={autoRotate}/>
-			 <directionalLight args={[0xffeedd, 1.0]} castShadow position={[1,.6,0]}/>
+			 <directionalLight args={[0x0, 1.0]} castShadow position={[1,.6,0]}/>
 			 <ambientLight args={[2]}/>
 			 { /* <axesHelper /> */ }
 			 <Environment preset="sunset" />
 			 {/* <fog color="white" far={30} near={0.01} attach="fog" /> */}
 			 <Sky distance={450000} sunPosition={[1, .02, 0]} inclination={.1} azimuth={0.25}  />
 			 <Clouds position={[0,2.5,0]}/>
-			 <Grid position={[0,0,0]} rules={tv3} iteration={iteration} cells={cells} />
+			 <Grid position={[0,0,0]} rules={tv3} iteration={iteration} cells={cells}/>
 		   </Suspense>
 		 </Canvas>;
 }

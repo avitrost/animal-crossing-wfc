@@ -2,11 +2,8 @@ import React, { useEffect, useState, Suspense, useRef } from 'react'
 
 import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 
-import { Canvas } from '@react-three/fiber'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Sky, Environment, OrbitControls } from "@react-three/drei";
-
-import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
 
 import './App.css';
 

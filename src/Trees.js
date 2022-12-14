@@ -3,20 +3,20 @@ import { Scatter } from './Scatter';
 
 import useTree from './models/Tree.js';
 
-import { rotateY360, scale1_2, lightPlus50pct } from "./transforms";
+import { scale_tree, lightPlus50pct } from "./transforms";
 
 export const Trees = (props) => {
 
-  const [ tree, material ] = useTree();
+  const {geometries, materials} = useTree();
 
   return <Scatter
-		   scale={scale1_2}
+		   scale={scale_tree}
 		   color={lightPlus50pct}
 		   position={props.position}
-		   material={material}
+		   material={materials}
 		   geometry={props.geometry}
-		   childGeometry={tree}
-		   density={50}>
+		   childGeometry={geometries}
+		   density={5}>
 		 </Scatter>
 
 };

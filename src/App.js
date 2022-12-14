@@ -1,5 +1,8 @@
 import React, { useEffect, useState, Suspense, useRef } from 'react'
 
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
+
+import { Canvas } from '@react-three/fiber'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Sky, Environment, OrbitControls } from "@react-three/drei";
 
@@ -21,6 +24,8 @@ const d60 = 2*Math.PI/6;
 const th = Math.sqrt(3)/6;
 
 const verbose = false;
+
+// var domEvents = new DomEvent(camera, renderer.domElement)
 
 function log(msg) {
   if (verbose) console.log(msg);
@@ -346,6 +351,8 @@ function App({ props }) {
 	};
   }, [iteration, autoRotate, cells]);
 
+//   const camera = {{fov: 45, position: [5, 5, 5]}}
+//   const camera = new THREE
   return <Canvas camera={{ fov: 45, position: [5, 5, 5] }}>
 		   <Suspense fallback={null}>
 			 <OrbitControls autoRotate={autoRotate}/>
@@ -353,7 +360,7 @@ function App({ props }) {
 			 <ambientLight args={[2]}/>
 			 { /* <axesHelper /> */ }
 			 <Environment preset="sunset" />
-			 <fog color="white" far={30} near={0.01} attach="fog" />
+			 {/* <fog color="white" far={30} near={0.01} attach="fog" /> */}
 			 <Sky distance={450000} sunPosition={[1, .02, 0]} inclination={.1} azimuth={0.25}  />
 			 <Clouds position={[0,2.5,0]}/>
 			 <Grid position={[0,0,0]} rules={tv3} iteration={iteration} cells={cells} parameters={parameters}/>

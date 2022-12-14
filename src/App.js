@@ -3,6 +3,8 @@ import React, { useEffect, useState, Suspense, useRef } from 'react'
 import { Canvas, useThree } from '@react-three/fiber'
 import { Sky, Environment, OrbitControls } from "@react-three/drei";
 
+import { GUI } from 'three/examples/jsm/libs/lil-gui.module.min.js';
+
 import './App.css';
 
 import tri from './tri.js';
@@ -104,6 +106,7 @@ threeInstance.scene.traverse(function(obj){
   const [ dirty, setDirty ] = useState( [] );
   const [ iteration, setIteration ] = useState(0);
   const [ cellIdx, setCellIdx ] = useState('');
+  const [ cellTile, setCellTile ] = useState(-1);
   const [ clicked, setClicked ] = useState(false);
 
   const HandleClick = e => {
@@ -114,8 +117,11 @@ threeInstance.scene.traverse(function(obj){
 		const ix = intersects[0].point
 		console.log(ix)
 		const cellx = tri.pick_tri(ix.x, ix.z).toString()
-		console.log(cellx);
+		const tile = props.parameters.tileChoice[Math.floor(Math.random() * props.parameters.tileChoice.length)]
+		console.log('choice');
+		console.log(tile);
 		setCellIdx(cellx);
+		setCellTile(tile);
 		setClicked(true);
 		setIteration(iteration+1);
 	  }
@@ -204,10 +210,20 @@ threeInstance.scene.traverse(function(obj){
 	  return;
 	}
 
+	var overrideVal = false
 	if (clicked) {
 		setClicked(false);
 		if (cellIdx in options && options[cellIdx].length > 1) {
 			min_cell = cellIdx;
+			if (cellTile !== -1) {
+				if (options[min_cell].includes(cellTile)) {
+					console.log(options[min_cell])
+					console.log(cellTile)
+					overrideVal = true
+				} else {
+					return;
+				}
+			}
 		} else {
 			return;
 		}
@@ -215,7 +231,12 @@ threeInstance.scene.traverse(function(obj){
 	console.log(min_cell)
 
 	// pick a random option
-	const val = options[min_cell][Math.floor(Math.random()*options[min_cell].length)];
+	var val = options[min_cell][Math.floor(Math.random()*options[min_cell].length)];
+
+	if (overrideVal) {
+		val = cellTile
+	}
+	console.log(val)
 
 	log(`Setting ${min_cell} to ${val} (had ${len} options)`);
 
@@ -241,6 +262,26 @@ function App({ props }) {
 
   const [ iteration, setIteration ] = useState(0);
   const [ autoRotate, setAutoRotate ] = useState(false);
+
+  // CONTROLS START HERE
+  const gui = new GUI()
+
+  // possible controls to add
+  // number of clouds (just a slider)
+  // size of clouds (also a slider)
+  // time of day (how is the scene lit?)
+  // grid size (blob radius)
+  // camera exposure
+  // 
+
+  const parameters = {
+	  tileChoice: -1
+  }
+
+  gui.add(parameters, 'tileChoice', { Random: [-1], Grass: [0], Cliff1: [2, 3, 4], Cliff2: [5, 6, 7], Water: [8], Beach1: [9, 10, 11], Beach2: [15, 16, 17], Cliff1: [12, 13, 14], Cliff2: [18, 19, 20], Tri1: [21, 22, 23], Tri2: [24, 25, 26] } );
+
+  gui.close()
+  // CONTROLS END HERE
 
 //   const { mycamera, myscene, myrenderer } = useThree()
 //   const cam={ fov: 45, position: [5, 5, 5] }
@@ -315,7 +356,7 @@ function App({ props }) {
 			 <fog color="white" far={30} near={0.01} attach="fog" />
 			 <Sky distance={450000} sunPosition={[1, .02, 0]} inclination={.1} azimuth={0.25}  />
 			 <Clouds position={[0,2.5,0]}/>
-			 <Grid position={[0,0,0]} rules={tv3} iteration={iteration} cells={cells}/>
+			 <Grid position={[0,0,0]} rules={tv3} iteration={iteration} cells={cells} parameters={parameters}/>
 		   </Suspense>
 		 </Canvas>;
 }

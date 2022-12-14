@@ -275,7 +275,7 @@ function App({ props }) {
   // 
 
   const parameters = {
-	  tileChoice: -1
+	  tileChoice: [-1]
   }
 
   gui.add(parameters, 'tileChoice', { Random: [-1], Grass: [0], Cliff1: [2, 3, 4], Cliff2: [5, 6, 7], Water: [8], Beach1: [9, 10, 11], Beach2: [15, 16, 17], Cliff1: [12, 13, 14], Cliff2: [18, 19, 20], Tri1: [21, 22, 23], Tri2: [24, 25, 26] } );
